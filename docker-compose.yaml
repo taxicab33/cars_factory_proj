@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+
+  app:
+    restart: always
+    build:
+      context: ./maindir
+    command: bash -c "python ./app/manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
