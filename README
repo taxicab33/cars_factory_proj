@@ -7,3 +7,4 @@ DetailType - Тип детали
 DetailTypeProperty - Характеристики типов деталей
 DetailTypePropertyValue - Значение характеристик типов деталей
 CarDetail - Детали автомобиля
+![alt text](https://github.com/taxicab33/cars_factory_proj/blob/master/readme_imgs/schema.png)
