@@ -57,7 +57,7 @@ class Car(models.Model):
 
     @receiver(post_save, sender=Detail)
     def update_car_price_if_detail_created_or_edited(sender, instance, created, **kwargs):
-        """Update car price if factory detail was created/changed"""
+        """Update car price if factory detail was changed"""
         if not created:
             Car.bulk_price_update()
 
