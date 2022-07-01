@@ -4,20 +4,6 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 
-class CarDetail(models.Model):
-    detail = models.ForeignKey('Detail', on_delete=models.CASCADE, null=False)
-    count = models.IntegerField(default=1)
-    car = models.ForeignKey('Car', on_delete=models.CASCADE, null=False)
-
-    def __str__(self):
-        return self.car.name + " " + self.detail.name
-
-    class Meta:
-        verbose_name = "Запчасть"
-        verbose_name_plural = "Автозапчасти"
-        ordering = ['car']
-
-
 class DetailType(models.Model):
     name = models.CharField(max_length=255)
 
@@ -47,6 +33,20 @@ class Detail(models.Model):
         ordering = ['type']
 
 
+class CarDetail(models.Model):
+    detail = models.ForeignKey('Detail', on_delete=models.CASCADE, null=False)
+    count = models.IntegerField(default=1)
+    car = models.ForeignKey('Car', on_delete=models.CASCADE, null=False)
+
+    def __str__(self):
+        return self.car.name + " " + self.detail.name
+
+    class Meta:
+        verbose_name = "Запчасть"
+        verbose_name_plural = "Автозапчасти"
+        ordering = ['car']
+
+
 class Car(models.Model):
     name = models.CharField(max_length=255)
     price = models.IntegerField(default=0)
@@ -55,24 +55,42 @@ class Car(models.Model):
     def __str__(self):
         return self.name
 
+    @receiver(post_save, sender=Detail)
+    def update_car_price_if_detail_created_or_edited(sender, instance, created, **kwargs):
+        """Update car price if factory detail was created/changed"""
+        Car.bulk_price_update()
+
+    @receiver(post_delete, sender=Detail)
+    def update_car_price_if_detail_deleted(sender, instance, **kwargs):
+        """Update car price if factory detail was deleted"""
+        Car.bulk_price_update()
+
+    @staticmethod
+    def bulk_price_update():
+        """Update price of all cars"""
+        cars = Car.objects.all()
+        for car in cars:
+            car.price = CarDetail.objects.filter(car=car).aggregate(s=Sum(F('detail__price')*F('count') ) )['s']
+        Car.objects.bulk_update(cars, ['price'])
+
     def get_details(self):
         """Return all car's details"""
         return CarDetail.objects.filter(car=self).select_related('detail', 'detail__type', 'detail__type')
 
-    def update_price(self):
-        """Updates price if car's detail was car's detail content was changed"""
+    def update_instance_price(self):
+        """Updates car price"""
         self.price = CarDetail.objects.filter(car=self).aggregate(s=Sum(F('detail__price')*F('count') ) )['s']
         self.save()
 
     @receiver(post_save, sender=CarDetail)
     def update_car_price_if_car_detail_created(sender, instance, created, **kwargs):
         """Update car price if factory detail was added to car's details """
-        instance.car.update_price()
+        instance.car.update_instance_price()
 
     @receiver(post_delete, sender=CarDetail)
     def update_car_price_if_car_detail_deleted(sender, instance, **kwargs):
         """Update car price if factory detail was deleted from car's details """
-        instance.car.update_price()
+        instance.car.update_instance_price()
 
     class Meta:
         verbose_name = "Автомобиль"
