@@ -30,6 +30,23 @@ class DetailType(models.Model):
         return self.name
 
 
+class Detail(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+    type = models.ForeignKey('DetailType', null=True, on_delete=models.PROTECT)
+    price = models.IntegerField(default=0)
+
+    def get_properties_and_values(self):
+        return DetailTypePropertyValue.objects.filter(detail=self).select_related('property')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Деталь"
+        verbose_name_plural = "Детали"
+        ordering = ['type']
+
+
 class Car(models.Model):
     name = models.CharField(max_length=255)
     price = models.IntegerField(default=0)
@@ -49,35 +66,18 @@ class Car(models.Model):
 
     @receiver(post_save, sender=CarDetail)
     def update_car_price_if_car_detail_created(sender, instance, created, **kwargs):
-        """Update car price if car detail was added """
+        """Update car price if factory detail was added to car's details """
         instance.car.update_price()
 
     @receiver(post_delete, sender=CarDetail)
     def update_car_price_if_car_detail_deleted(sender, instance, **kwargs):
-        """Update car price if car detail was deleted """
+        """Update car price if factory detail was deleted from car's details """
         instance.car.update_price()
 
     class Meta:
         verbose_name = "Автомобиль"
         verbose_name_plural = "Автомобили"
         ordering = ['price']
-
-
-class Detail(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-    type = models.ForeignKey('DetailType', null=True, on_delete=models.PROTECT)
-    price = models.IntegerField(default=0)
-
-    def get_properties_and_values(self):
-        return DetailTypePropertyValue.objects.filter(detail=self).select_related('property')
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "Деталь"
-        verbose_name_plural = "Детали"
-        ordering = ['type']
 
 
 class DetailTypeProperty(models.Model):
