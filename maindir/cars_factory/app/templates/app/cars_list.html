@@ -6,7 +6,7 @@
 </head>
 <body>
     {%for car in cars%}
-        <p>{{car.name}}, Цена - {{car.price}} P.</p>
+        <p>{{car.name}}, Цена - {{car.price}} P., Наценка производителя - {{car.manufacturer_margin}}%</p>
         <table>
             <tr>
                 <td>Деталь</td>

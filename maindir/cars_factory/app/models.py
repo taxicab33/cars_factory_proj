@@ -71,9 +71,12 @@ class Car(models.Model):
         """Update price of all cars"""
         cars = Car.objects.all()
         cars_to_update = []
+        cars_details = CarDetail.objects.all().select_related('car', 'detail')
         for car in cars:
             old_price = car.price
-            car.price = CarDetail.objects.filter(car=car).aggregate(s=Sum(F('detail__price')*F('count') ) )['s']
+            price = sum([car_detail.detail.price*car_detail.count for car_detail in cars_details
+                         if car == car_detail.car])
+            car.price = price + price * car.manufacturer_margin / 100
             if old_price != car.price:
                 cars_to_update.append(car)
         Car.objects.bulk_update(cars_to_update, ['price'])
@@ -84,7 +87,8 @@ class Car(models.Model):
 
     def update_instance_price(self):
         """Updates car price"""
-        self.price = CarDetail.objects.filter(car=self).aggregate(s=Sum(F('detail__price')*F('count') ) )['s']
+        price = CarDetail.objects.filter(car=self).aggregate(s=Sum(F('detail__price')*F('count') ) )['s']
+        self.price = price + price*self.manufacturer_margin/100
         self.save()
 
     @receiver(post_save, sender=CarDetail)
