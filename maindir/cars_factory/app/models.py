@@ -74,9 +74,9 @@ class Car(models.Model):
         cars_details = CarDetail.objects.all().select_related('car', 'detail')
         for car in cars:
             old_price = car.price
-            price = sum([car_detail.detail.price*car_detail.count for car_detail in cars_details
-                         if car == car_detail.car])
-            car.price = price + price * car.manufacturer_margin / 100
+            new_price = sum([car_detail.detail.price*car_detail.count for car_detail in cars_details
+                            if car == car_detail.car])
+            car.price = new_price + new_price * car.manufacturer_margin / 100
             if old_price != car.price:
                 cars_to_update.append(car)
         Car.objects.bulk_update(cars_to_update, ['price'])
