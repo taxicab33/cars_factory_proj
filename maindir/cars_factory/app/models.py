@@ -69,14 +69,14 @@ class Car(models.Model):
     @staticmethod
     def bulk_price_update():
         """Update price of all cars"""
-        cars = Car.objects.all()
         cars_to_update = []
         cars_details = CarDetail.objects.all().select_related('car', 'detail')
+        cars = set([car_detail.car for car_detail in cars_details if car_detail.car])
         for car in cars:
             old_price = car.price
-            price = sum([car_detail.detail.price*car_detail.count for car_detail in cars_details
-                         if car == car_detail.car])
-            car.price = price + price * car.manufacturer_margin / 100
+            new_price = sum([car_detail.detail.price*car_detail.count for car_detail in cars_details
+                            if car == car_detail.car])
+            car.price = new_price + new_price * car.manufacturer_margin / 100
             if old_price != car.price:
                 cars_to_update.append(car)
         Car.objects.bulk_update(cars_to_update, ['price'])
