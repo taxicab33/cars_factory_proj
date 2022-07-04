@@ -59,18 +59,18 @@ class Car(models.Model):
     def update_car_price_if_detail_created_or_edited(sender, instance, created, **kwargs):
         """Update car price if factory detail was changed"""
         if not created:
-            Car.bulk_price_update()
+            Car.bulk_price_update(instance)
 
     @receiver(post_delete, sender=Detail)
     def update_car_price_if_detail_deleted(sender, instance, **kwargs):
         """Update car price if factory detail was deleted"""
-        Car.bulk_price_update()
+        Car.bulk_price_update(instance)
 
     @staticmethod
-    def bulk_price_update():
+    def bulk_price_update(detail):
         """Update price of all cars"""
         cars_to_update = []
-        cars_details = CarDetail.objects.all().select_related('car', 'detail')
+        cars_details = CarDetail.objects.filter(detail=detail).select_related('car', 'detail')
         cars = set([car_detail.car for car_detail in cars_details if car_detail.car])
         for car in cars:
             old_price = car.price
