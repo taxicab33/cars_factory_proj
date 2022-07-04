@@ -68,7 +68,7 @@ class Car(models.Model):
 
     @staticmethod
     def bulk_price_update(detail):
-        """Update price of all cars that have detail that was changed"""
+        """Update price of all cars that have detail that was changed/deleted"""
         cars_to_update = []
         cars_details = CarDetail.objects.filter(detail=detail).select_related('car', 'detail')
         cars = set([car_detail.car for car_detail in cars_details if car_detail.car])
