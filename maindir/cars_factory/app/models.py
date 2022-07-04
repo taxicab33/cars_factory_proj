@@ -83,7 +83,7 @@ class Car(models.Model):
 
     def get_details(self):
         """Return all car's details"""
-        return CarDetail.objects.filter(car=self).select_related('detail', 'detail__type', 'detail__type')
+        return CarDetail.objects.filter(car=self).select_related('detail', 'detail__type')
 
     def update_instance_price(self):
         """Updates car price"""
