@@ -22,7 +22,7 @@ class Detail(models.Model):
     price = models.IntegerField(default=0)
 
     def get_properties_and_values(self):
-        return DetailTypePropertyValue.objects.filter(detail=self).select_related('property')
+        return DetailTypePropertyValue.objects.filter(detail=self).prefetch_related('property')
 
     def __str__(self):
         return self.name
