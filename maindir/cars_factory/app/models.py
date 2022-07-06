@@ -22,7 +22,7 @@ class Detail(models.Model):
     price = models.IntegerField(default=0)
 
     def get_properties_and_values(self):
-        return DetailTypePropertyValue.objects.filter(detail=self).prefetch_related('property')
+        return DetailTypePropertyValue.objects.filter(detail=self).select_related('property')
 
     def __str__(self):
         return self.name
@@ -70,7 +70,7 @@ class Car(models.Model):
     def bulk_price_update(detail):
         """Update price of all cars that have detail that was changed/deleted"""
         cars_to_update = []
-        cars_details = CarDetail.objects.filter(detail=detail).prefetch_related('car', 'detail')
+        cars_details = CarDetail.objects.filter(detail=detail).select_related('car', 'detail')
         cars = set([car_detail.car for car_detail in cars_details if car_detail.car])
         for car in cars:
             old_price = car.price
@@ -83,7 +83,7 @@ class Car(models.Model):
 
     def get_details(self):
         """Return all car's details"""
-        return CarDetail.objects.filter(car=self).prefetch_related('detail', 'detail__type')
+        return CarDetail.objects.filter(car=self).select_related('detail', 'detail__type')
 
     def update_instance_price(self):
         """Updates car price"""
